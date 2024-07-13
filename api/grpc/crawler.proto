@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package crawler;
+
+service CrawlerService {
+    rpc Scrape(ScrapeRequest) returns (ScrapeResponse) {}
+  }
+
+message ScrapeRequest {
+    string url = 1
+  }
+
+message ScrapeResponse {
+    string url = 1;
+    google.protobuf.Timestamp timestamp = 2;
+    int32 statuc_code = 3;
+    string html = 4;
+    string title = 5;
+    string description = 6;
+    repeated string extracted_urls = 7;
+    map<string, string> headers = 8;
+  }
+
+

@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package frontier;
+
+service FrontierService {
+    rpc AddURL(AddURLRequest) returns (AddURLResponse) {}
+    rpc GetURL(GetURLRequest) returns (GetURLResponse) {}
+  }
+
+message AddURLRequest {
+    string url = 1
+  }
+
+message AddURLResponse {
+    bool success = 1;
+  }
+
+message GetURLRequest{}
+
+message GetURLResponse {
+    string url = 1
+  }

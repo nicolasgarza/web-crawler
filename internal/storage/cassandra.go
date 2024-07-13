@@ -2,7 +2,8 @@ package storage
 
 import (
 	"context"
-	pb "web-crawler/api/proto/storage"
+	"encoding/json"
+	"web-crawler/pkg/models"
 
 	"github.com/gocql/gocql"
 )
@@ -21,19 +22,45 @@ func NewCassandraStorage(hosts []string, keyspace string) (*CassandraStorage, er
 	return &CassandraStorage{session: session}, nil
 }
 
-func (cs *CassandraStorage) StorePage(ctx context.Context, req *pb.StorePageRequest) (*pb.StorePageResponse, error) {
+func (cs *CassandraStorage) StorePage(ctx context.Context, url string, html string) error {
 	query := "INSERT INTO pages (url, html) VALUES (?, ?)"
-	if err := cs.session.Query(query, req.Url, req.Html).Exec(); err != nil {
-		return &pb.StorePageResponse{Success: false}, err
-	}
-	return &pb.StorePageResponse{Success: true}, nil
+	return cs.session.Query(query, url, html).WithContext(ctx).Exec()
 }
 
-func (cs *CassandraStorage) GetPage(ctx context.Context, req *pb.GetPageRequest) (*pb.GetPageResponse, error) {
+func (cs *CassandraStorage) GetPage(ctx context.Context, url string) (string, error) {
 	var html string
 	query := "SELECT html FROM pages WHERE url = ?"
-	if err := cs.session.Query(query, req.Url).Scan(&html); err != nil {
-		return nil, err
+	err := cs.session.Query(query, url).WithContext(ctx).Scan(&html)
+	return html, err
+}
+
+func (cs *CassandraStorage) StoreCrawledPage(ctx context.Context, page *models.CrawledPage) error {
+	// convert headers to json string
+	headers, err := json.Marshal(page.Headers)
+	if err != nil {
+		return err
 	}
-	return &pb.GetPageResponse{Html: html}, nil
+
+	// convert extracted urls to json string
+	extractedURLs, err := json.Marshal(page.ExtractedURLs)
+	if err != nil {
+		return err
+	}
+
+	query := `
+        INSERT INTO crawled_pages (
+            url, timestamp, status_code, headers, html, title, description, extracted_urls
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `
+
+	return cs.session.Query(query,
+		page.URL,
+		page.Timestamp,
+		page.StatusCode,
+		string(headers),
+		page.HTML,
+		page.Title,
+		page.Description,
+		string(extractedURLs),
+	).WithContext(ctx).Exec()
 }

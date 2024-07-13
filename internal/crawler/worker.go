@@ -1,25 +1,14 @@
-package crawlerservice
+package crawler
 
 import (
-	"net/http"
 	"time"
+	"web-crawler/pkg/models"
 
 	"github.com/gocolly/colly"
 )
 
 type Scraper struct {
 	c *colly.Collector
-}
-
-type CrawledPage struct {
-	URL           string
-	Timestamp     time.Time
-	StatusCode    int
-	Headers       *http.Header
-	HTML          string
-	Title         string
-	Description   string
-	ExtractedURLs []string
 }
 
 func NewScraper() *Scraper {
@@ -46,8 +35,8 @@ func NewScraper() *Scraper {
 	}
 }
 
-func (s *Scraper) Scrape(url string) (*CrawledPage, error) {
-	page := &CrawledPage{URL: url, Timestamp: time.Now()}
+func (s *Scraper) Scrape(url string) (*models.CrawledPage, error) {
+	page := &models.CrawledPage{URL: url, Timestamp: time.Now()}
 	s.c.OnResponse(func(r *colly.Response) {
 		page.StatusCode = r.StatusCode
 		page.Headers = r.Headers

@@ -1,0 +1,8 @@
+numScrapers: 1
+kafkaBrokers:
+  - localhost:9092
+kafkaTopic: url_frontier
+cassandraAddress: localhost
+redisAddress: localhost:6379
+seedURLs:
+  - https://en.wikipedia.org/wiki/Concurrency_(computer_science) 

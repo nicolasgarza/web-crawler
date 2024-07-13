@@ -150,3 +150,7 @@ func (c *Coordinator) checkRobotsTXT(ctx context.Context, url string) (bool, err
 	}
 	return util.IsAllowedByRobotsTXT(robotsTXT, url), nil
 }
+
+func (c *Coordinator) AddURL(url string) error {
+	return c.urlFrontier.AddURL(context.Background(), url)
+}

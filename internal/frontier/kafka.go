@@ -2,9 +2,39 @@ package frontier
 
 import (
 	"context"
+	pb "web-crawler/api/proto/frontier"
+
+	"google.golang.org/grpc"
 
 	"github.com/segmentio/kafka-go"
 )
+
+type FrontierClient struct {
+	client pb.FrontierServiceClient
+}
+
+func NewFrontierClient(address string) (*FrontierClient, error) {
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+	return &FrontierClient{
+		client: pb.NewFrontierServiceClient(conn),
+	}, nil
+}
+
+func (fc *FrontierClient) AddURL(ctx context.Context, url string) error {
+	_, err := fc.client.AddURL(ctx, &pb.AddURLRequest{Url: url})
+	return err
+}
+
+func (fc *FrontierClient) GetURL(ctx context.Context) (string, error) {
+	resp, err := fc.client.GetURL(ctx, &pb.GetURLRequest{})
+	if err != nil {
+		return "", err
+	}
+	return resp.Url, nil
+}
 
 type URLFrontier struct {
 	reader *kafka.Reader

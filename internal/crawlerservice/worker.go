@@ -1,4 +1,4 @@
-package crawler
+package crawlerservice
 
 import (
 	"net/http"

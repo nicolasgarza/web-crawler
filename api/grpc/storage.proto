@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package storage;
+
+option go_package = "web-crawler/api/proto/storage";
+
+service StorageService {
+    rpc StorePage(StorePageRequest) returns (StorePageResponse) {}
+    rpc GetPage(GetPageRequest) returns (GetPageResponse) {}
+    rpc WriteResult(WriteResultRequest) returns (WriteResultResponse) {}
+  }
+
+message StorePageRequest {
+    string url = 1;
+    string html = 2;
+  }
+
+message StorePageResponse {
+    bool success = 1;
+  }
+
+message GetPageRequest {
+    string url = 1;
+  }
+
+message GetPageResponse {
+    string html = 1;
+  }
+
+message WriteResultRequest {
+    bytes result = 1;
+  }
+
+message WriteResultResponse {
+    bool success = 1;
+  }

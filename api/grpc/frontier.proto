@@ -2,13 +2,15 @@ syntax = "proto3";
 
 package frontier;
 
+option go_package = "web-crawler/api/proto/frontier";
+
 service FrontierService {
     rpc AddURL(AddURLRequest) returns (AddURLResponse) {}
     rpc GetURL(GetURLRequest) returns (GetURLResponse) {}
   }
 
 message AddURLRequest {
-    string url = 1
+    string url = 1;
   }
 
 message AddURLResponse {
@@ -18,5 +20,5 @@ message AddURLResponse {
 message GetURLRequest{}
 
 message GetURLResponse {
-    string url = 1
+    string url = 1;
   }

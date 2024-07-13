@@ -2,18 +2,22 @@ syntax = "proto3";
 
 package crawler;
 
+option go_package = "web-crawler/api/proto/crawler";
+
+import "google/protobuf/timestamp.proto";
+
 service CrawlerService {
     rpc Scrape(ScrapeRequest) returns (ScrapeResponse) {}
   }
 
 message ScrapeRequest {
-    string url = 1
+    string url = 1;
   }
 
 message ScrapeResponse {
     string url = 1;
     google.protobuf.Timestamp timestamp = 2;
-    int32 statuc_code = 3;
+    int32 status_code = 3;
     string html = 4;
     string title = 5;
     string description = 6;

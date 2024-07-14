@@ -73,6 +73,7 @@ func (c *Coordinator) Run() {
 	ctx := context.Background()
 	for {
 		url, err := c.urlFrontier.GetURL(ctx)
+		log.Println("Reading message from frontier")
 		if err != nil {
 			log.Printf("Error reading message from frontier: %v", err)
 			continue
@@ -97,34 +98,49 @@ func (c *Coordinator) Run() {
 		}
 
 		scraper := c.getAvailableScraper()
+		log.Printf("Got scraper, starting goroutine for URL: %s", url)
 		go func(url string, scraper *Scraper) {
+			defer c.releaseScraper(scraper)
+
 			result, err := scraper.Scrape(url)
+			log.Printf("Finished scraping URL: %s", url)
 			if err != nil {
 				log.Printf("Error scraping article: %v", err)
-			} else {
-				c.handleResult(ctx, result)
+				return
+			}
+
+			c.handleResult(ctx, result)
+
+			// Set URL as crawled in Redis (non-blocking)
+			go func() {
 				if err := c.redisCache.SetCrawledURL(ctx, url); err != nil {
 					log.Printf("Error setting crawled URL in Redis: %v", err)
+				} else {
+					log.Printf("Successfully set URL as crawled in Redis: %s", url)
 				}
-			}
-			c.releaseScraper(scraper)
+			}()
 		}(url, scraper)
 	}
 }
 
 func (c *Coordinator) handleResult(ctx context.Context, result *models.CrawledPage) {
-	err := c.storage.StoreCrawledPage(ctx, result)
-	if err != nil {
-		log.Printf("Error writing to results: %v", err)
-	}
-
-	// add new urls to frontier
-	for _, newURL := range result.ExtractedURLs {
-		err = c.urlFrontier.AddURL(ctx, newURL)
+	go func() {
+		log.Printf("Handling result for URL: %s", result.URL)
+		err := c.storage.StoreCrawledPage(ctx, result)
 		if err != nil {
-			log.Printf("Error writing to frontier: %v", err)
+			log.Printf("Error writing to Cassandra: %v", err)
+		} else {
+			log.Printf("Successfully stored in Cassandra: %s", result.URL)
 		}
-	}
+
+		// Add new URLs to frontier
+		for _, newURL := range result.ExtractedURLs {
+			err = c.urlFrontier.AddURL(ctx, newURL)
+			if err != nil {
+				log.Printf("Error writing to frontier: %v", err)
+			}
+		}
+	}()
 }
 
 func (c *Coordinator) checkRobotsTXT(ctx context.Context, url string) (bool, error) {

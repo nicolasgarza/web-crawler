@@ -26,6 +26,7 @@ func main() {
 		log.Fatalf("Failed to create coordinator: %v", err)
 	}
 
+	log.Println("Running coordinator")
 	go coordinator.Run()
 
 	for _, url := range cfg.SeedURLs {

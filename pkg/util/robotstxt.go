@@ -44,5 +44,5 @@ func IsAllowedByRobotsTXT(robotsTXTContent, URL string) bool {
 		return false
 	}
 
-	return robots.TestAgent(parsedURL.Path, "YourBotUserAgent")
+	return robots.TestAgent(parsedURL.Path, "MyBotAgent")
 }
